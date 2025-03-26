@@ -1,6 +1,8 @@
 package codegen
 
-import "cuelang.org/go/cue"
+import (
+	"cuelang.org/go/cue"
+)
 
 // Kind is a common interface declaration for code generation.
 // Any type parser should be able to parse a kind into this definition to supply
@@ -89,6 +91,26 @@ type AdditionalPrinterColumn struct {
 	JSONPath    string  `json:"jsonPath"`
 }
 
+// CustomRouteRequest represents the request part of a custom route definition,
+// potentially containing CUE schemas for query parameters and the request body.
+type CustomRouteRequest struct {
+	Query cue.Value `json:"query,omitempty"` // CUE schema for query parameters
+	Body  cue.Value `json:"body,omitempty"`  // CUE schema for request body
+}
+
+// CustomRouteResponse represents the response part of a custom route definition,
+// potentially containing a CUE schema for the response body.
+type CustomRouteResponse struct {
+	Schema cue.Value `json:"schema,omitempty"` // CUE schema for the response body
+}
+
+// CustomRoute represents a single custom route definition for a specific HTTP method,
+// including its request and response schemas.
+type CustomRoute struct {
+	Request  CustomRouteRequest  `json:"request"`
+	Response CustomRouteResponse `json:"response"`
+}
+
 type KindVersion struct {
 	Version string `json:"version"`
 	// Schema is the CUE schema for the version
@@ -100,6 +122,10 @@ type KindVersion struct {
 	Validation               KindAdmissionCapability   `json:"validation"`
 	Mutation                 KindAdmissionCapability   `json:"mutation"`
 	AdditionalPrinterColumns []AdditionalPrinterColumn `json:"additionalPrinterColumns"`
+	// CustomRoutes defines the custom API routes for this kind version,
+	// mapping a path pattern to a map of HTTP methods to route definitions.
+	// The route definitions contain CUE schemas for request/response.
+	CustomRoutes map[string]map[string]CustomRoute `json:"customRoutes"`
 }
 
 // AnyKind is a simple implementation of Kind
